@@ -20,22 +20,23 @@ drogon::Task<bool> JwtService::isValidRefreshToken(const std::string& refreshTok
     try
     {
         auto decodedJwt = jwt::decode(refreshToken);
-        auto verifier = jwt::verify()
-                                .allow_algorithm(jwt::algorithm::hs256(this->_secretKey))
-                                .with_claim("exp", jwt::claim(std::chrono::system_clock::now()));
+        auto verifier = jwt::verify().allow_algorithm(jwt::algorithm::hs256(this->_secretKey));
 
         verifier.verify(decodedJwt);
 
         std::optional<models::JwtToken> token =
                 co_await this->_tokenRepository.getByToken(refreshToken);
-        if (token.has_value() && token->revokedAt == std::nullopt)
+
+        std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+
+        if (token.has_value() && token->revokedAt == std::nullopt && now < token->expiredAt)
         {
             co_return true;
         }
 
         co_return false;
     }
-    catch (const jwt::error::token_verification_exception& ex)
+    catch (const std::system_error& ex)
     {
         co_return false;
     }
@@ -50,9 +51,7 @@ bool JwtService::isValidAccessToken(const std::string& token)
     try
     {
         auto decodedJwt = jwt::decode(token);
-        auto verifier = jwt::verify()
-                                .allow_algorithm(jwt::algorithm::hs256(this->_secretKey))
-                                .with_claim("exp", jwt::claim(std::chrono::system_clock::now()));
+        auto verifier = jwt::verify().allow_algorithm(jwt::algorithm::hs256(this->_secretKey));
 
         verifier.verify(decodedJwt);
 
@@ -83,7 +82,7 @@ JwtService::createJwtTokens(const dto::UserData& userData)
     token.userId = userData.id;
     token.hashedToken = refreshToken;
     token.issuedAt = issuedAt;
-    token.expiresAt = issuedAt + this->_refreshTokenValidityDuraction;
+    token.expiredAt = issuedAt + this->_refreshTokenValidityDuraction;
     token.revokedAt = std::nullopt;
 
     auto tokenId = this->_tokenRepository.create(token);
@@ -132,4 +131,18 @@ drogon::Task<std::string> JwtService::refresh(const std::string& refreshToken)
                     .sign(jwt::algorithm::hs256(this->_secretKey));
 
     co_return accessToken;
+}
+
+nlohmann::json JwtService::getPayload(const std::string& token) const
+{
+    auto decodedJwt = jwt::decode(token);
+
+    nlohmann::json payload;
+
+    payload["exp"] = decodedJwt.get_payload_claim("exp").as_string();
+    payload["userId"] = decodedJwt.get_payload_claim("userId").as_integer();
+    payload["nickname"] = decodedJwt.get_payload_claim("nickname").as_string();
+    payload["email"] = decodedJwt.get_payload_claim("email").as_string();
+
+    return payload;
 }

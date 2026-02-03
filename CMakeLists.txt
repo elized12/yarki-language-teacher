@@ -37,9 +37,14 @@ add_executable(${PROJECT_NAME} main.cpp)
 # and comment out the following lines
 find_package(Drogon CONFIG REQUIRED)
 
+set(JWT_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(JWT_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+
+
+add_subdirectory(${EXTERN_DIR}/json)
 add_subdirectory(${EXTERN_DIR}/jwt-cpp)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon jwt-cpp::jwt-cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon jwt-cpp::jwt-cpp nlohmann_json::nlohmann_json)
 
 # ##############################################################################
 
@@ -96,5 +101,3 @@ target_sources(${PROJECT_NAME}
 # set_property(TARGET ${PROJECT_NAME} PROPERTY ENABLE_EXPORTS ON)
 
 # ##############################################################################
-
-add_subdirectory(test)

@@ -1,0 +1,13 @@
+FROM drogonframework/drogon
+
+WORKDIR /app
+
+COPY . .
+
+RUN mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
+RUN mv /app/build/webbis-language-teacher /app/webbis-language-teacher
+
+EXPOSE 8000
+
+CMD [ "/app/webbis-language-teacher"]
+

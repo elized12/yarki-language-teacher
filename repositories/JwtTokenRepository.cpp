@@ -1,5 +1,7 @@
 #include "repositories/JwtTokenRepository.hpp"
 
+#include <iostream>
+
 using namespace repositories;
 
 JwtTokenRepository::JwtTokenRepository(drogon::orm::DbClientPtr db) : _db(db)
@@ -10,13 +12,13 @@ drogon::Task<models::id> JwtTokenRepository::create(const models::JwtToken& toke
 {
     drogon::orm::Result result = co_await this->_db->execSqlCoro(
             R"(
-        INSERT INTO token (user_id, hashed_token, issued_at, expires_at)
-         VALUES ($1, $2, $3, $4) RETURNING id;
+        INSERT INTO token (user_id, hashed_token, issued_at, expired_at)
+        VALUES ($1, $2, $3, $4) RETURNING id;
     )",
-            token.userId,
+            static_cast<int>(token.userId),
             token.hashedToken,
             models::timePointToString(token.issuedAt),
-            models::timePointToString(token.expiresAt)
+            models::timePointToString(token.expiredAt)
     );
 
     if (result.empty())
@@ -30,7 +32,7 @@ drogon::Task<models::id> JwtTokenRepository::create(const models::JwtToken& toke
 drogon::Task<bool> JwtTokenRepository::remove(models::id id)
 {
     drogon::orm::Result result =
-            co_await this->_db->execSqlCoro(R"(DELETE FROM token WHERE id = $1)", id);
+            co_await this->_db->execSqlCoro(R"(DELETE FROM token WHERE id = $1)", static_cast<int>(id));
 
     co_return result.affectedRows() != 0;
 }
@@ -48,10 +50,10 @@ drogon::Task<std::optional<models::JwtToken>> JwtTokenRepository::get(models::id
 {
     drogon::orm::Result result = co_await this->_db->execSqlCoro(
             R"(
-            SELECT id, user_id, hashed_token, issued_at, expires_at, revoked_at 
+            SELECT id, user_id, hashed_token, issued_at, expired_at, revoked_at 
             FROM token WHERE id = $1
         )",
-            id
+            static_cast<int>(id)
     );
 
     if (result.empty())
@@ -63,7 +65,7 @@ drogon::Task<std::optional<models::JwtToken>> JwtTokenRepository::get(models::id
     token.id = result[0]["id"].as<models::id>();
     token.userId = result[0]["user_id"].as<models::id>();
     token.hashedToken = result[0]["hashed_token"].as<std::string>();
-    token.expiresAt = models::stringToTimePoint(result[0]["expires_at"].as<std::string>());
+    token.expiredAt = models::stringToTimePoint(result[0]["expired_at"].as<std::string>());
     token.issuedAt = models::stringToTimePoint(result[0]["issued_at"].as<std::string>());
     if (!result[0]["revoked_at"].isNull())
     {
@@ -82,7 +84,7 @@ JwtTokenRepository::getByToken(const std::string& hashedToken)
 {
     drogon::orm::Result result = co_await this->_db->execSqlCoro(
             R"(
-            SELECT id, user_id, hashed_token, issued_at, expires_at, revoked_at 
+            SELECT id, user_id, hashed_token, issued_at, expired_at, revoked_at 
             FROM token WHERE hashed_token = $1
         )",
             hashedToken
@@ -97,7 +99,7 @@ JwtTokenRepository::getByToken(const std::string& hashedToken)
     token.id = result[0]["id"].as<models::id>();
     token.userId = result[0]["user_id"].as<models::id>();
     token.hashedToken = result[0]["hashed_token"].as<std::string>();
-    token.expiresAt = models::stringToTimePoint(result[0]["expires_at"].as<std::string>());
+    token.expiredAt = models::stringToTimePoint(result[0]["expired_at"].as<std::string>());
     token.issuedAt = models::stringToTimePoint(result[0]["issued_at"].as<std::string>());
     if (!result[0]["revoked_at"].isNull())
     {
@@ -134,7 +136,7 @@ drogon::Task<bool> JwtTokenRepository::revoke(models::id id, models::timePoint t
             UPDATE token SET revoked_at = $1 WHERE id = $2
         )",
             models::timePointToString(timeRevoke),
-            id
+            static_cast<int>(id)
     );
 
     co_return result.affectedRows() != 0;
@@ -150,7 +152,7 @@ JwtTokenRepository::revokeByUserId(models::id userId, models::timePoint timeRevo
             UPDATE token SET revoked_at = $1 WHERE user_id = $2
         )",
             models::timePointToString(timeRevoke),
-            userId
+            static_cast<int>(userId)
     );
 
     co_return result.affectedRows() != 0;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
+
 #include "dto/UserLogin.hpp"
 #include "dto/UserRegistration.hpp"
 #include "dto/Validator.hpp"
@@ -11,7 +13,7 @@
 namespace services
 {
 
-class AuthSerivce
+class AuthService
 {
   private:
     repositories::UserRepository _userRepository;
@@ -19,7 +21,7 @@ class AuthSerivce
     dto::Validator& _validator;
 
   public:
-    AuthSerivce(
+    AuthService(
             repositories::UserRepository userRepository,
             services::JwtService jwtService,
             dto::Validator& validator
@@ -28,9 +30,13 @@ class AuthSerivce
   public:
     drogon::Task<models::id> registerUser(const dto::UserRegistration& userData);
     drogon::Task<std::pair<std::string, std::string>> loginUser(const dto::UserLogin& credentials);
+    bool isValidAccessToken(const std::string& accessToken);
+    drogon::Task<bool> isValidRefreshToken(const std::string& refreshToken);
     drogon::Task<std::string> refresh(const std::string& refreshToken);
     drogon::Task<void> logoutUser(const models::id userId);
     drogon::Task<std::optional<models::User>> getUser(const models::id userId);
+
+    nlohmann::json getPayload(const std::string& token) const;
 };
 
 } // namespace services

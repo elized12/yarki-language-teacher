@@ -1,6 +1,7 @@
 #pragma once
 
 #include <jwt-cpp/jwt.h>
+#include <nlohmann/json.hpp>
 
 #include <string>
 
@@ -34,6 +35,8 @@ class JwtService
     drogon::Task<std::string> refresh(const std::string& refreshToken);
     drogon::Task<std::pair<std::string, std::string>>
     createJwtTokens(const dto::UserData& userData);
+
+    nlohmann::json getPayload(const std::string& token) const;
 };
 
 } // namespace services
