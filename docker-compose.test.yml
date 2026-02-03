@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: "test"
+      POSTGRES_USER: "test"
+      POSTGRES_DB: "test"
+      DB_PORT: "5432"
+    volumes:
+      - ./migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5430:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "test", "-d", "test" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    networks:
+      - test_network
+
+  app:
+    build:
+      dockerfile: .docker/app/Dockerfile.test
+      context: .
+    environment:
+      CONFIG_JSON_PATH: "config.test.json"
+    networks:
+      - test_network
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/metrics" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+
+  tests:
+    build:
+      dockerfile: .docker/test/Dockerfile
+      context: .
+    command: [ "python", "tests/integration/main.py" ]
+    environment:
+      POSTGRES_PASSWORD: "test"
+      POSTGRES_USER: "test"
+      POSTGRES_DB: "test"
+      DB_PORT: "5432"
+      APP_PORT: "8000"
+    networks:
+      - test_network
+    volumes:
+      - ./tests:/test/tests
+    depends_on:
+      app:
+        condition: service_healthy
+
+networks:
+  test_network:
+    driver: bridge

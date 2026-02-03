@@ -2,7 +2,7 @@
     "listeners": [
         {
             "address": "0.0.0.0",
-            "port": 5555,
+            "port": 8000,
             "https": false
         }
     ],
@@ -10,7 +10,7 @@
         {
             "name": "default",
             "rdbms": "postgresql",
-            "host": "127.0.0.1",
+            "host": "localhost",
             "port": 5432,
             "dbname": "launguage_teacher",
             "user": "postgres",
@@ -21,24 +21,11 @@
             "auto_batch": false
         }
     ],
-    "redis_clients": [
-        {
-            "name": "default",
-            "host": "127.0.0.1",
-            "port": 6379,
-            "username": "",
-            "passwd": "",
-            "db": 0,
-            "is_fast": false,
-            "number_of_connections": 1,
-            "timeout": -1.0
-        }
-    ],
     "app": {
         "number_of_threads": 4,
         "enable_session": false,
         "session_timeout": 0,
-        "session_same_site" : "Null",
+        "session_same_site": "Null",
         "session_cookie_key": "JSESSIONID",
         "session_max_age": -1,
         "document_root": "./",
@@ -62,10 +49,7 @@
             "webp",
             "svg"
         ],
-        "mime": {
-           
-        },
-
+        "mime": {},
         "max_connections": 100000,
         "max_connections_per_ip": 0,
         "load_dynamic_views": false,
@@ -94,7 +78,7 @@
         "use_gzip": true,
         "use_brotli": false,
         "static_files_cache_time": 5,
-        "idle_connection_timeout": 60,
+        "idle_connection_timeout": 30,
         "server_header_field": "",
         "enable_server_header": true,
         "enable_date_header": true,
@@ -131,5 +115,9 @@
             }
         }
     ],
-    "custom_config": {}
+    "custom_config": {
+        "secret_key": "test",
+        "refresh_token_validity_duraction": 24,
+        "access_token_validity_duraction": 15
+    }
 }

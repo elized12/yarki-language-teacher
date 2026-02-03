@@ -15,7 +15,7 @@ class JwtToken
     models::id userId;
     std::string hashedToken;
     timePoint issuedAt;
-    timePoint expiresAt;
+    timePoint expiredAt;
     std::optional<timePoint> revokedAt;
 };
 

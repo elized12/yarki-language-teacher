@@ -27,6 +27,7 @@ class UserRepository
     drogon::Task<models::id> create(const models::User& user);
     drogon::Task<bool> remove(models::id id);
     drogon::Task<bool> update(const models::User& user);
+    drogon::Task<std::optional<models::User>> getByEmail(const std::string& email);
 };
 
 } // namespace repositories

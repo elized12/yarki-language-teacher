@@ -29,7 +29,7 @@ drogon::Task<models::id> UserRepository::create(const models::User& user)
 drogon::Task<std::optional<models::User>> UserRepository::get(models::id id)
 {
     drogon::orm::Result result = co_await this->_db->execSqlCoro(
-            R"(SELECT id, nickname, hashed_password, email FROM "user" WHERE id = $1)", id
+            R"(SELECT id, nickname, hashed_password, email FROM "user" WHERE id = $1)", static_cast<int>(id)
     );
     if (result.empty())
     {
@@ -70,7 +70,7 @@ UserRepository::getByCredentials(const std::string& email, const std::string& ha
 drogon::Task<bool> UserRepository::remove(models::id id)
 {
     drogon::orm::Result result =
-            co_await this->_db->execSqlCoro(R"(DELETE FROM "user" WHERE id = $1)", id);
+            co_await this->_db->execSqlCoro(R"(DELETE FROM "user" WHERE id = $1)", static_cast<int>(id));
     co_return result.affectedRows() != 0;
 }
 
@@ -81,7 +81,26 @@ drogon::Task<bool> UserRepository::update(const models::User& user)
             user.email,
             user.hashedPassword,
             user.nickname,
-            user.id
+            static_cast<int>(user.id)
     );
     co_return result.affectedRows() != 0;
+}
+
+drogon::Task<std::optional<models::User>> UserRepository::getByEmail(const std::string& email)
+{
+    drogon::orm::Result result = co_await this->_db->execSqlCoro(
+            R"(SELECT id, nickname, hashed_password, email FROM "user" WHERE email = $1)", email
+    );
+    if (result.empty())
+    {
+        co_return std::nullopt;
+    }
+
+    models::User user;
+    user.id = std::stoull(result[0]["id"].as<std::string>());
+    user.email = result[0]["email"].as<std::string>();
+    user.nickname = result[0]["nickname"].as<std::string>();
+    user.hashedPassword = result[0]["hashed_password"].as<std::string>();
+
+    co_return user;
 }
