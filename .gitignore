@@ -565,3 +565,5 @@ build/*
 .vscode
 
 __pycache__
+
+CMakePresets.json

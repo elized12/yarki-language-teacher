@@ -2,7 +2,7 @@
     "listeners": [
         {
             "address": "0.0.0.0",
-            "port": 8000,
+            "port": 8005,
             "https": false
         }
     ],
@@ -12,7 +12,7 @@
             "rdbms": "postgresql",
             "host": "localhost",
             "port": 5432,
-            "dbname": "launguage_teacher",
+            "dbname": "language_teacher",
             "user": "postgres",
             "passwd": "kirill200415",
             "is_fast": false,

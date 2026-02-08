@@ -1,4 +1,4 @@
-#include "services/JwtSerivce.hpp"
+#include "services/JwtService.hpp"
 
 using namespace services;
 
@@ -46,7 +46,7 @@ drogon::Task<bool> JwtService::isValidRefreshToken(const std::string& refreshTok
     }
 }
 
-bool JwtService::isValidAccessToken(const std::string& token)
+bool JwtService::isValidAccessToken(const std::string& token) const
 {
     try
     {
@@ -133,16 +133,9 @@ drogon::Task<std::string> JwtService::refresh(const std::string& refreshToken)
     co_return accessToken;
 }
 
-nlohmann::json JwtService::getPayload(const std::string& token) const
+jwt::traits::kazuho_picojson::object_type JwtService::getPayload(const std::string& token) const
 {
     auto decodedJwt = jwt::decode(token);
 
-    nlohmann::json payload;
-
-    payload["exp"] = decodedJwt.get_payload_claim("exp").as_string();
-    payload["userId"] = decodedJwt.get_payload_claim("userId").as_integer();
-    payload["nickname"] = decodedJwt.get_payload_claim("nickname").as_string();
-    payload["email"] = decodedJwt.get_payload_claim("email").as_string();
-
-    return payload;
+    return decodedJwt.get_payload_json();
 }

@@ -18,7 +18,7 @@ class LanguageCode
     enum Code
     {
         RU = 0,
-        EN,
+        EN = 1,
     };
 
   public:

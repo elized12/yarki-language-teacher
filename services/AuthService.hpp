@@ -6,7 +6,7 @@
 #include "dto/UserRegistration.hpp"
 #include "dto/Validator.hpp"
 #include "repositories/UserRepository.hpp"
-#include "services/JwtSerivce.hpp"
+#include "services/JwtService.hpp"
 #include "services/ValidataionException.hpp"
 #include "services/auth/UserAlreadyExistException.hpp"
 
@@ -36,7 +36,7 @@ class AuthService
     drogon::Task<void> logoutUser(const models::id userId);
     drogon::Task<std::optional<models::User>> getUser(const models::id userId);
 
-    nlohmann::json getPayload(const std::string& token) const;
+    jwt::traits::kazuho_picojson::object_type getPayload(const std::string& token) const;
 };
 
 } // namespace services

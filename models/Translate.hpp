@@ -8,6 +8,7 @@ namespace models
 class Translate
 {
   public:
+    models::id id;
     models::id firstWordId;
     models::id secondWordId;
     models::timePoint createdAt;

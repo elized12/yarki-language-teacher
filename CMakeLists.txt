@@ -37,14 +37,19 @@ add_executable(${PROJECT_NAME} main.cpp)
 # and comment out the following lines
 find_package(Drogon CONFIG REQUIRED)
 
+find_package(ICU REQUIRED COMPONENTS uc i18n)
+
 set(JWT_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(JWT_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-
 
 add_subdirectory(${EXTERN_DIR}/json)
 add_subdirectory(${EXTERN_DIR}/jwt-cpp)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon jwt-cpp::jwt-cpp nlohmann_json::nlohmann_json)
+target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon
+    jwt-cpp::jwt-cpp
+    nlohmann_json::nlohmann_json
+    ${ICU_LIBRARIES}
+)
 
 # ##############################################################################
 
@@ -83,6 +88,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/m
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/repositores)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/services)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dto)
+target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${ICU_INCLUDE_DIRS})
 
 target_sources(${PROJECT_NAME}
                PRIVATE

@@ -2,7 +2,7 @@
 
 using namespace models;
 
-const std::array<int, 2> LanguageCode::_values = {0, 1};
+const std::array<int, 2> LanguageCode::_values = {1, 2};
 
 const std::array<std::string, 2> LanguageCode::_names = {"RU", "EN"};
 

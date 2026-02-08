@@ -21,6 +21,7 @@ FOREIGN KEY (language_id) REFERENCES "language"(id) ON DELETE CASCADE;
 CREATE INDEX idx_word_language_id ON "word"(language_id);
 
 CREATE TABLE translation(
+    id SERIAL PRIMARY KEY,
     word_a_id INT NOT NULL,
     word_b_id INT NOT NULL,
     user_id INT NOT NULL,

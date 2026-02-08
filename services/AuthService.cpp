@@ -112,7 +112,7 @@ drogon::Task<bool> AuthService::isValidRefreshToken(const std::string& refreshTo
     co_return co_await this->_jwtService.isValidRefreshToken(refreshToken);
 }
 
-nlohmann::json AuthService::getPayload(const std::string& token) const
+jwt::traits::kazuho_picojson::object_type AuthService::getPayload(const std::string& token) const
 {
     return this->_jwtService.getPayload(token);
 }

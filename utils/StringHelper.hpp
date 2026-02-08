@@ -1,3 +1,7 @@
+#include <boost/locale.hpp>
+#include <boost/locale/boundary.hpp>
+#include <boost/algorithm/string/trim.hpp>
+
 #include <algorithm>
 #include <string>
 
@@ -27,5 +31,12 @@ inline void trim(std::string& s)
     ltrim(s);
     rtrim(s);
 }
+
+
+inline void trimUtf8(std::string& s)
+{
+    boost::algorithm::trim(s);
+}
+
 
 } // namespace utils::string

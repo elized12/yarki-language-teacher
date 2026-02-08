@@ -3,7 +3,7 @@
 drogon::Task<HttpResponsePtr> TranslateController::addTranslate(HttpRequestPtr request)
 {
     const std::string accessToken = request->getHeader("Authorization");
-    models::id userId = this->_authService.getPayload(accessToken)["userId"].get<models::id>();
+    models::id userId = std::stoull(this->_authService.getPayload(accessToken)["userId"].get<std::string>());
 
     std::shared_ptr<Json::Value> requestBody = request->getJsonObject();
     if (!requestBody || !requestBody->isMember("firstWord") ||
@@ -32,7 +32,7 @@ drogon::Task<HttpResponsePtr> TranslateController::addTranslate(HttpRequestPtr r
         models::id translateId = co_await this->_translateService.addTranslate(translate);
 
         std::optional<std::pair<models::Word, models::Word>> translation =
-                co_await this->_translateService.get(translateId);
+            co_await this->_translateService.get(translateId);
 
         Json::Value answerBody;
         answerBody["status"] = true;
@@ -49,7 +49,18 @@ drogon::Task<HttpResponsePtr> TranslateController::addTranslate(HttpRequestPtr r
 
         co_return response;
     }
-    catch (const services::ValidationException& ex)
+    catch (const services::TranslateAlreadyExistException &ex)
+    {
+        Json::Value answerBody;
+        answerBody["status"] = false;
+        answerBody["message"] = std::string("Ошибка валидации:") + ex.what();
+
+        drogon::HttpResponsePtr response = drogon::HttpResponse::newHttpJsonResponse(answerBody);
+        response->setStatusCode(drogon::HttpStatusCode::k409Conflict);
+
+        co_return response;
+    }
+    catch (const services::ValidationException &ex)
     {
         Json::Value answerBody;
         answerBody["status"] = false;
@@ -60,11 +71,11 @@ drogon::Task<HttpResponsePtr> TranslateController::addTranslate(HttpRequestPtr r
 
         co_return response;
     }
-    catch (const std::exception& ex)
+    catch (const std::exception &ex)
     {
         Json::Value answerBody;
         answerBody["status"] = false;
-        answerBody["message"] = "Ошибка сервера";
+        answerBody["message"] = std::string("Ошибка сервера:") + ex.what();
 
         drogon::HttpResponsePtr response = drogon::HttpResponse::newHttpJsonResponse(answerBody);
         response->setStatusCode(drogon::HttpStatusCode::k500InternalServerError);
@@ -76,7 +87,7 @@ drogon::Task<HttpResponsePtr> TranslateController::addTranslate(HttpRequestPtr r
 drogon::Task<HttpResponsePtr> TranslateController::removeTranslate(HttpRequestPtr request)
 {
     const std::string accessToken = request->getHeader("Authorization");
-    models::id userId = this->_authService.getPayload(accessToken)["userId"].get<models::id>();
+    models::id userId = std::stoull(this->_authService.getPayload(accessToken)["userId"].get<std::string>());
 
     std::shared_ptr<Json::Value> requestBody = request->getJsonObject();
     if (!requestBody || !requestBody->isMember("firstWordId") ||
@@ -102,7 +113,18 @@ drogon::Task<HttpResponsePtr> TranslateController::removeTranslate(HttpRequestPt
         remove.secondWordId = secondWordId;
         remove.userId = userId;
 
-        co_await this->_translateService.removeTranslate(remove);
+        bool isDeleted = co_await this->_translateService.removeTranslate(remove);
+        if (!isDeleted)
+        {
+            Json::Value answerBody;
+            answerBody["status"] = false;
+            answerBody["message"] = "Перевод не найден";
+
+            drogon::HttpResponsePtr response = drogon::HttpResponse::newHttpJsonResponse(answerBody);
+            response->setStatusCode(drogon::HttpStatusCode::k404NotFound);
+
+            co_return response;
+        }
 
         Json::Value answerBody;
         answerBody["status"] = true;
@@ -115,7 +137,7 @@ drogon::Task<HttpResponsePtr> TranslateController::removeTranslate(HttpRequestPt
 
         co_return response;
     }
-    catch (const std::exception& ex)
+    catch (const std::exception &ex)
     {
         Json::Value answerBody;
         answerBody["status"] = false;
@@ -132,27 +154,42 @@ drogon::Task<HttpResponsePtr>
 TranslateController::getTranslates(HttpRequestPtr request, models::id wordId)
 {
     const std::string accessToken = request->getHeader("Authorization");
-    models::id userId = this->_authService.getPayload(accessToken)["userId"].get<models::id>();
+    models::id userId = std::stoull(this->_authService.getPayload(accessToken)["userId"].get<std::string>());
 
     try
     {
         std::vector<models::Word> translates =
-                co_await this->_translateService.getTranslates(wordId, userId);
+            co_await this->_translateService.getTranslates(wordId, userId);
 
         nlohmann::json answerBody;
         answerBody["status"] = true;
         answerBody["message"] = "Успешно получены переводы для слова";
 
-        for (const models::Word& word : translates)
+        for (const models::Word &word : translates)
         {
             answerBody["words"].push_back(
-                    {{"word", word.content},
-                     {"id", std::to_string(word.id)},
-                     {"code", word.languageCode}}
-            );
+                {{"word", word.content},
+                 {"id", std::to_string(word.id)},
+                 {"code", word.languageCode}});
         }
+
+        drogon::HttpResponsePtr response = drogon::HttpResponse::newHttpResponse(drogon::HttpStatusCode::k200OK, drogon::ContentType::CT_APPLICATION_JSON);
+        response->setBody(answerBody.dump());
+
+        co_return response;
     }
-    catch (const std::exception& ex)
+    catch (const services::ValidationException &ex)
+    {
+        Json::Value answerBody;
+        answerBody["status"] = false;
+        answerBody["message"] = std::string("Ошибка валидации: ") + ex.what();
+
+        drogon::HttpResponsePtr response = drogon::HttpResponse::newHttpJsonResponse(answerBody);
+        response->setStatusCode(drogon::HttpStatusCode::k400BadRequest);
+
+        co_return response;
+    }
+    catch (const std::exception &ex)
     {
         Json::Value answerBody;
         answerBody["status"] = false;
@@ -167,30 +204,24 @@ TranslateController::getTranslates(HttpRequestPtr request, models::id wordId)
 
 TranslateController::TranslateController()
     : _translateService(
-              services::TranslateService(
-                      repositories::WordRepository(drogon::app().getDbClient()),
-                      repositories::TranslateRepository(drogon::app().getDbClient())
-              )
-      ),
+          services::TranslateService(
+              repositories::WordRepository(drogon::app().getDbClient()),
+              repositories::TranslateRepository(drogon::app().getDbClient()),
+              services::WordCleaner())),
       _authService(
-              services::AuthService(
-                      repositories::UserRepository(drogon::app().getDbClient()),
-                      services::JwtService(
-                              drogon::app().getCustomConfig()["secret_key"].asString(),
-                              std::chrono::hours(
-                                      drogon::app()
-                                              .getCustomConfig()["refresh_token_validity_duraction"]
-                                              .asInt()
-                              ),
-                              std::chrono::minutes(
-                                      drogon::app()
-                                              .getCustomConfig()["access_token_validity_duraction"]
-                                              .asInt()
-                              ),
-                              repositories::JwtTokenRepository(drogon::app().getDbClient())
-                      ),
-                      dto::Validator::getInstance()
-              )
-      )
+          services::AuthService(
+              repositories::UserRepository(drogon::app().getDbClient()),
+              services::JwtService(
+                  drogon::app().getCustomConfig()["secret_key"].asString(),
+                  std::chrono::hours(
+                      drogon::app()
+                          .getCustomConfig()["refresh_token_validity_duraction"]
+                          .asInt()),
+                  std::chrono::minutes(
+                      drogon::app()
+                          .getCustomConfig()["access_token_validity_duraction"]
+                          .asInt()),
+                  repositories::JwtTokenRepository(drogon::app().getDbClient())),
+              dto::Validator::getInstance()))
 {
 }
