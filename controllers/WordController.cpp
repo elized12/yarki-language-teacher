@@ -1,45 +1,42 @@
 #include "controllers/WordController.hpp"
 
 drogon::Task<HttpResponsePtr> WordController::getWords(
-        HttpRequestPtr request,
-        models::id userId,
-        std::string&& languageCode,
-        ssize_t offset,
-        ssize_t limit
-)
+    HttpRequestPtr request,
+    models::id userId,
+    std::string &&languageCode,
+    ssize_t offset,
+    ssize_t limit)
 {
-    if (WordController::MAX_LIMIT < limit)
-    {
-        throw services::ValidationException("Лимит не может быть больше 5000");
-    }
-
     try
     {
+        if (WordController::MAX_LIMIT < limit)
+        {
+            throw services::ValidationException("Лимит не может быть больше 5000");
+        }
+
         std::vector<models::Word> words =
-                co_await this->_wordService.get(userId, languageCode, limit, offset);
+            co_await this->_wordService.get(userId, languageCode, limit, offset);
 
         nlohmann::json answerBody;
         answerBody["status"] = true;
         answerBody["message"] = "Успешно";
         answerBody["count"] = words.size();
 
-        for (const models::Word& word : words)
+        for (const models::Word &word : words)
         {
             answerBody["words"].push_back(
-                    {{"word", word.content},
-                     {"id", std::to_string(word.id)},
-                     {"code", word.languageCode}}
-            );
+                {{"word", word.content},
+                 {"id", std::to_string(word.id)},
+                 {"code", word.languageCode}});
         }
 
         drogon::HttpResponsePtr response = drogon::HttpResponse::newHttpResponse(
-                drogon::HttpStatusCode::k200OK, drogon::ContentType::CT_APPLICATION_JSON
-        );
+            drogon::HttpStatusCode::k200OK, drogon::ContentType::CT_APPLICATION_JSON);
         response->setBody(answerBody.dump());
 
         co_return response;
     }
-    catch (const services::ValidationException& ex)
+    catch (const services::ValidationException &ex)
     {
         Json::Value answerBody;
         answerBody["status"] = false;
@@ -50,11 +47,11 @@ drogon::Task<HttpResponsePtr> WordController::getWords(
 
         co_return response;
     }
-    catch (const std::exception& ex)
+    catch (const std::exception &ex)
     {
         Json::Value answerBody;
         answerBody["status"] = false;
-        answerBody["message"] = "ошибка сервера";
+        answerBody["message"] = std::string("ошибка сервера:") + ex.what();
 
         drogon::HttpResponsePtr response = drogon::HttpResponse::newHttpJsonResponse(answerBody);
         response->setStatusCode(drogon::HttpStatusCode::k500InternalServerError);
@@ -64,7 +61,7 @@ drogon::Task<HttpResponsePtr> WordController::getWords(
 }
 
 drogon::Task<HttpResponsePtr>
-WordController::getCount(HttpRequestPtr request, models::id userId, std::string&& code)
+WordController::getCount(HttpRequestPtr request, models::id userId, std::string &&code)
 {
     try
     {
@@ -80,7 +77,7 @@ WordController::getCount(HttpRequestPtr request, models::id userId, std::string&
 
         co_return response;
     }
-    catch (const services::ValidationException& ex)
+    catch (const services::ValidationException &ex)
     {
         Json::Value answerBody;
         answerBody["status"] = false;
@@ -91,7 +88,7 @@ WordController::getCount(HttpRequestPtr request, models::id userId, std::string&
 
         co_return response;
     }
-    catch (const std::exception& ex)
+    catch (const std::exception &ex)
     {
         Json::Value answerBody;
         answerBody["status"] = false;

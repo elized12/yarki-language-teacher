@@ -156,8 +156,11 @@ drogon::Task<std::vector<models::Word>> WordRepository::getByUser(
 {
     drogon::orm::Result result = co_await this->_db->execSqlCoro(
         R"(
-            SELECT translation.word_a_id as translationWordAId,
-                translation.word_b_id, translation.user_id, translation.created_at,
+            SELECT 
+                translation.word_a_id as translationWordAId,
+                translation.word_b_id as translationWordBId,
+                translation.user_id as userId,
+                translation.created_at as created_at,
                 wa.content as wordAContent,
                 wa.language_id as wordALanguageId,
                 wb.content as wordBContent,
@@ -167,15 +170,15 @@ drogon::Task<std::vector<models::Word>> WordRepository::getByUser(
             FROM translation
             INNER JOIN word wa ON wa.id = translation.word_a_id
             INNER JOIN word wb ON wb.id = translation.word_b_id
-            WHERE (wa.language_id = $2 OR wb.language_id = $2) AND translation.user_id = $1
+            WHERE (wa.language_id = $1 OR wb.language_id = $1) AND translation.user_id = $2
             ORDER BY translation.created_at
             LIMIT $3
             OFFSET $4
         )",
-        userId,
         static_cast<int>(code),
-        limit,
-        offset);
+        static_cast<int>(userId),
+        static_cast<int64_t>(limit),
+        static_cast<int64_t>(offset));
 
     if (result.empty())
     {
