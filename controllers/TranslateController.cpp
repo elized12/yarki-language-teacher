@@ -173,7 +173,9 @@ TranslateController::getTranslates(HttpRequestPtr request, models::id wordId)
                  {"code", word.languageCode}});
         }
 
-        drogon::HttpResponsePtr response = drogon::HttpResponse::newHttpResponse(drogon::HttpStatusCode::k200OK, drogon::ContentType::CT_APPLICATION_JSON);
+        drogon::HttpResponsePtr response = drogon::HttpResponse::newHttpResponse(
+            drogon::HttpStatusCode::k200OK,
+            drogon::ContentType::CT_APPLICATION_JSON);
         response->setBody(answerBody.dump());
 
         co_return response;

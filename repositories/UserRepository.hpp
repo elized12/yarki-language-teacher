@@ -12,8 +12,8 @@
 namespace repositories
 {
 
-class UserRepository
-{
+  class UserRepository
+  {
   private:
     drogon::orm::DbClientPtr _db;
 
@@ -23,11 +23,11 @@ class UserRepository
   public:
     drogon::Task<std::optional<models::User>> get(models::id id);
     drogon::Task<std::optional<models::User>>
-    getByCredentials(const std::string& email, const std::string& hashedPassword);
-    drogon::Task<models::id> create(const models::User& user);
+    getByCredentials(const std::string &email, const std::string &hashedPassword);
+    drogon::Task<models::id> create(const models::User &user);
     drogon::Task<bool> remove(models::id id);
-    drogon::Task<bool> update(const models::User& user);
-    drogon::Task<std::optional<models::User>> getByEmail(const std::string& email);
-};
+    drogon::Task<bool> update(const models::User &user);
+    drogon::Task<std::optional<models::User>> getByEmail(const std::string &email);
+  };
 
 } // namespace repositories

@@ -129,3 +129,69 @@ drogon::Task<std::optional<models::Translate>> TranslateRepository::get(models::
 
     co_return translate;
 }
+
+drogon::Task<std::vector<models::Translate>> TranslateRepository::getTranslates(
+    models::id userId,
+    const models::LanguageCode::Code &sourceLanguage,
+    const models::LanguageCode::Code &targetLanguage,
+    const std::vector<models::id> &ignoredIds,
+    ssize_t limit)
+{
+    std::string sql = R"(
+            SELECT
+                translation.id as translationId,
+                translation.word_a_id as wordAId,
+                translation.word_b_id as wordBId,
+                translation.created_at as createdAt,
+                translation.user_id as userId
+            FROM translation
+            INNER JOIN word wa ON wa.id = translation.word_a_id
+            INNER JOIN word wb ON wb.id = translation.word_b_id
+            WHERE
+                ((wa.language_id = $1 AND wb.language_id = $2) OR (wa.language_id = $2 AND wb.language_id = $1))
+            AND
+                (translation.user_id = $3)
+    )";
+
+    if (!ignoredIds.empty())
+    {
+        std::string ids;
+        for (size_t i = 0; i < ignoredIds.size(); ++i)
+        {
+            if (i)
+                ids += ",";
+            ids += std::to_string(ignoredIds[i]);
+        }
+        sql += " AND translation.id NOT IN (" + ids + ")";
+    }
+
+    sql += " ORDER BY translation.created_at DESC LIMIT $4";
+
+    drogon::orm::Result result = co_await this->_db->execSqlCoro(
+        sql,
+        static_cast<int>(sourceLanguage),
+        static_cast<int>(targetLanguage),
+        static_cast<int>(userId),
+        static_cast<int64_t>(limit));
+
+    if (result.empty())
+    {
+        co_return std::vector<models::Translate>{};
+    }
+
+    std::vector<models::Translate> translates;
+    translates.reserve(result.size());
+
+    for (const auto &row : result)
+    {
+        models::Translate t;
+        t.id = row["translationId"].as<models::id>();
+        t.firstWordId = row["wordAId"].as<models::id>();
+        t.secondWordId = row["wordBId"].as<models::id>();
+        t.createdAt = models::stringToTimePoint(row["createdAt"].as<std::string>());
+        t.userId = row["userId"].as<models::id>();
+        translates.push_back(std::move(t));
+    }
+
+    co_return translates;
+}

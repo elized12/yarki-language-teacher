@@ -6,14 +6,14 @@
 namespace dto
 {
 
-class UpdateTranslate
-{
+  class UpdateTranslate
+  {
   public:
     models::id userId;
     models::id firstWordId;
     models::id secondWordId;
     models::LanguageCode::Code updateCodeWord;
     std::string newContent;
-};
+  };
 
 } // namespace dto

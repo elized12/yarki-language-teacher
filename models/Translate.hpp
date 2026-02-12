@@ -5,14 +5,14 @@
 namespace models
 {
 
-class Translate
-{
+  class Translate
+  {
   public:
     models::id id;
     models::id firstWordId;
     models::id secondWordId;
     models::timePoint createdAt;
     models::id userId;
-};
+  };
 
 } // namespace models

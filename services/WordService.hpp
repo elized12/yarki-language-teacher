@@ -6,8 +6,8 @@
 namespace services
 {
 
-class WordService
-{
+  class WordService
+  {
   private:
     repositories::WordRepository _wordRepository;
 
@@ -16,9 +16,9 @@ class WordService
 
   public:
     drogon::Task<std::vector<models::Word>>
-    get(models::id userId, const std::string& code, ssize_t limit, ssize_t offset);
+    get(models::id userId, const std::string &code, ssize_t limit, ssize_t offset);
 
-    drogon::Task<ssize_t> getCountWord(models::id userId, const std::string& code);
-};
+    drogon::Task<ssize_t> getCountWord(models::id userId, const std::string &code);
+  };
 
 } // namespace services

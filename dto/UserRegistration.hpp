@@ -5,12 +5,12 @@
 namespace dto
 {
 
-class UserRegistration
-{
+  class UserRegistration
+  {
   public:
     std::string nickname;
     std::string email;
     std::string password;
-};
+  };
 
 } // namespace dto

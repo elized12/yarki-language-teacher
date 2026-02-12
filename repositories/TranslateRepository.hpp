@@ -30,6 +30,12 @@ namespace repositories
     drogon::Task<models::id> create(const models::Translate &translate);
     drogon::Task<bool> remove(models::id firstWordId, models::id secondWordId, models::id userId);
     drogon::Task<bool> update(const models::Translate &user);
+    drogon::Task<std::vector<models::Translate>> getTranslates(
+        models::id userId,
+        const models::LanguageCode::Code &sourceLanguage,
+        const models::LanguageCode::Code &targetLanguage,
+        const std::vector<models::id> &ignoredIds,
+        ssize_t limit);
   };
 
 } // namespace repositories

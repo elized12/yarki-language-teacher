@@ -3,16 +3,15 @@
 using namespace services;
 
 AuthService::AuthService(
-        repositories::UserRepository userRepository,
-        services::JwtService jwtService,
-        dto::Validator& validator
-)
+    repositories::UserRepository userRepository,
+    services::JwtService jwtService,
+    dto::Validator &validator)
     : _userRepository(std::move(userRepository)), _jwtService(std::move(jwtService)),
       _validator(validator)
 {
 }
 
-drogon::Task<models::id> AuthService::registerUser(const dto::UserRegistration& userData)
+drogon::Task<models::id> AuthService::registerUser(const dto::UserRegistration &userData)
 {
     std::vector<std::string> errors;
     errors = this->_validator.isValidEmail(userData.email);
@@ -48,11 +47,10 @@ drogon::Task<models::id> AuthService::registerUser(const dto::UserRegistration& 
 }
 
 drogon::Task<std::pair<std::string, std::string>>
-AuthService::loginUser(const dto::UserLogin& credentials)
+AuthService::loginUser(const dto::UserLogin &credentials)
 {
     auto userOpt = co_await this->_userRepository.getByCredentials(
-            credentials.email, credentials.password
-    );
+        credentials.email, credentials.password);
     if (!userOpt.has_value())
     {
         throw ValidationException("Неверный email или пароль");
@@ -61,16 +59,15 @@ AuthService::loginUser(const dto::UserLogin& credentials)
     dto::UserData userData;
     userData.id = userOpt->id;
     userData.nickname = userOpt->nickname;
-    userData.email = userOpt->email; 
+    userData.email = userOpt->email;
 
     std::pair<std::string, std::string> tokens = co_await _jwtService.createJwtTokens(
-        userData
-    );
+        userData);
 
     co_return tokens;
 }
 
-drogon::Task<std::string> AuthService::refresh(const std::string& refreshToken)
+drogon::Task<std::string> AuthService::refresh(const std::string &refreshToken)
 {
     bool valid = co_await _jwtService.isValidRefreshToken(refreshToken);
     if (!valid)
@@ -102,17 +99,17 @@ drogon::Task<std::optional<models::User>> AuthService::getUser(const models::id 
     co_return co_await this->_userRepository.get(userId);
 }
 
-bool AuthService::isValidAccessToken(const std::string& accessToken)
+bool AuthService::isValidAccessToken(const std::string &accessToken)
 {
     return this->_jwtService.isValidAccessToken(accessToken);
 }
 
-drogon::Task<bool> AuthService::isValidRefreshToken(const std::string& refreshToken)
+drogon::Task<bool> AuthService::isValidRefreshToken(const std::string &refreshToken)
 {
     co_return co_await this->_jwtService.isValidRefreshToken(refreshToken);
 }
 
-jwt::traits::kazuho_picojson::object_type AuthService::getPayload(const std::string& token) const
+jwt::traits::kazuho_picojson::object_type AuthService::getPayload(const std::string &token) const
 {
     return this->_jwtService.getPayload(token);
 }

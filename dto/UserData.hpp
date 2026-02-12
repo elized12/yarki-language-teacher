@@ -5,12 +5,12 @@
 namespace dto
 {
 
-class UserData
-{
+  class UserData
+  {
   public:
     models::id id;
     std::string nickname;
     std::string email;
-};
+  };
 
 } // namespace dto

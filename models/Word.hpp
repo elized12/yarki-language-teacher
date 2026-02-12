@@ -5,12 +5,12 @@
 namespace models
 {
 
-class Word
-{
+  class Word
+  {
   public:
     models::id id;
     std::string languageCode;
     std::string content;
-};
+  };
 
 } // namespace models

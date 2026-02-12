@@ -36,7 +36,7 @@ drogon::Task<HttpResponsePtr> AuthController::signUp(HttpRequestPtr request)
 
         co_return response;
     }
-    catch (const services::auth::UserAlreadyExistException& ex)
+    catch (const services::auth::UserAlreadyExistException &ex)
     {
         Json::Value responseBody;
         responseBody["status"] = false;
@@ -47,7 +47,7 @@ drogon::Task<HttpResponsePtr> AuthController::signUp(HttpRequestPtr request)
 
         co_return response;
     }
-    catch (const services::ValidationException& ex)
+    catch (const services::ValidationException &ex)
     {
         Json::Value responseBody;
         responseBody["status"] = false;
@@ -58,7 +58,7 @@ drogon::Task<HttpResponsePtr> AuthController::signUp(HttpRequestPtr request)
 
         co_return response;
     }
-    catch (const std::exception& ex)
+    catch (const std::exception &ex)
     {
         Json::Value responseBody;
         responseBody["status"] = false;
@@ -93,7 +93,7 @@ drogon::Task<HttpResponsePtr> AuthController::signIn(HttpRequestPtr request)
     try
     {
         std::pair<std::string, std::string> tokens =
-                co_await this->_authService.loginUser(userLogin);
+            co_await this->_authService.loginUser(userLogin);
 
         Json::Value responseBody;
         responseBody["status"] = true;
@@ -106,7 +106,7 @@ drogon::Task<HttpResponsePtr> AuthController::signIn(HttpRequestPtr request)
 
         co_return response;
     }
-    catch (const services::ValidationException& ex)
+    catch (const services::ValidationException &ex)
     {
         Json::Value responseBody;
         responseBody["status"] = false;
@@ -117,7 +117,7 @@ drogon::Task<HttpResponsePtr> AuthController::signIn(HttpRequestPtr request)
 
         co_return response;
     }
-    catch (const std::exception& ex)
+    catch (const std::exception &ex)
     {
         Json::Value responseBody;
         responseBody["status"] = false;
@@ -161,7 +161,7 @@ drogon::Task<HttpResponsePtr> AuthController::refresh(HttpRequestPtr request)
 
         co_return response;
     }
-    catch (const services::ValidationException& ex)
+    catch (const services::ValidationException &ex)
     {
         Json::Value responseBody;
         responseBody["status"] = false;
@@ -172,7 +172,7 @@ drogon::Task<HttpResponsePtr> AuthController::refresh(HttpRequestPtr request)
 
         co_return response;
     }
-    catch (const std::exception& ex)
+    catch (const std::exception &ex)
     {
         Json::Value responseBody;
         responseBody["status"] = false;
@@ -187,24 +187,19 @@ drogon::Task<HttpResponsePtr> AuthController::refresh(HttpRequestPtr request)
 
 AuthController::AuthController()
     : _authService(
-              services::AuthService(
-                      repositories::UserRepository(drogon::app().getDbClient()),
-                      services::JwtService(
-                              drogon::app().getCustomConfig()["secret_key"].asString(),
-                              std::chrono::hours(
-                                      drogon::app()
-                                              .getCustomConfig()["refresh_token_validity_duraction"]
-                                              .asInt()
-                              ),
-                              std::chrono::minutes(
-                                      drogon::app()
-                                              .getCustomConfig()["access_token_validity_duraction"]
-                                              .asInt()
-                              ),
-                              repositories::JwtTokenRepository(drogon::app().getDbClient())
-                      ),
-                      dto::Validator::getInstance()
-              )
-      )
+          services::AuthService(
+              repositories::UserRepository(drogon::app().getDbClient()),
+              services::JwtService(
+                  drogon::app().getCustomConfig()["secret_key"].asString(),
+                  std::chrono::hours(
+                      drogon::app()
+                          .getCustomConfig()["refresh_token_validity_duraction"]
+                          .asInt()),
+                  std::chrono::minutes(
+                      drogon::app()
+                          .getCustomConfig()["access_token_validity_duraction"]
+                          .asInt()),
+                  repositories::JwtTokenRepository(drogon::app().getDbClient())),
+              dto::Validator::getInstance()))
 {
 }

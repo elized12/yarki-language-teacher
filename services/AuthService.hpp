@@ -13,30 +13,29 @@
 namespace services
 {
 
-class AuthService
-{
+  class AuthService
+  {
   private:
     repositories::UserRepository _userRepository;
     services::JwtService _jwtService;
-    dto::Validator& _validator;
+    dto::Validator &_validator;
 
   public:
     AuthService(
-            repositories::UserRepository userRepository,
-            services::JwtService jwtService,
-            dto::Validator& validator
-    );
+        repositories::UserRepository userRepository,
+        services::JwtService jwtService,
+        dto::Validator &validator);
 
   public:
-    drogon::Task<models::id> registerUser(const dto::UserRegistration& userData);
-    drogon::Task<std::pair<std::string, std::string>> loginUser(const dto::UserLogin& credentials);
-    bool isValidAccessToken(const std::string& accessToken);
-    drogon::Task<bool> isValidRefreshToken(const std::string& refreshToken);
-    drogon::Task<std::string> refresh(const std::string& refreshToken);
+    drogon::Task<models::id> registerUser(const dto::UserRegistration &userData);
+    drogon::Task<std::pair<std::string, std::string>> loginUser(const dto::UserLogin &credentials);
+    bool isValidAccessToken(const std::string &accessToken);
+    drogon::Task<bool> isValidRefreshToken(const std::string &refreshToken);
+    drogon::Task<std::string> refresh(const std::string &refreshToken);
     drogon::Task<void> logoutUser(const models::id userId);
     drogon::Task<std::optional<models::User>> getUser(const models::id userId);
 
-    jwt::traits::kazuho_picojson::object_type getPayload(const std::string& token) const;
-};
+    jwt::traits::kazuho_picojson::object_type getPayload(const std::string &token) const;
+  };
 
 } // namespace services

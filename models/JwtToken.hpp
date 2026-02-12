@@ -8,8 +8,8 @@
 namespace models
 {
 
-class JwtToken
-{
+  class JwtToken
+  {
   public:
     models::id id;
     models::id userId;
@@ -17,6 +17,6 @@ class JwtToken
     timePoint issuedAt;
     timePoint expiredAt;
     std::optional<timePoint> revokedAt;
-};
+  };
 
 } // namespace models

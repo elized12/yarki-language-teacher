@@ -4,8 +4,12 @@ WORKDIR /app
 
 COPY . .
 
-RUN apt-get update && apt-get install -y \
-    libicu-dev
+RUN apt-get update && \
+    apt-get install -y \
+    libicu-dev \
+    libboost-locale-dev \
+    libboost-system-dev \
+    libboost-dev
 
 RUN mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make
 RUN mv /app/build/webbis-language-teacher /app/webbis-language-teacher

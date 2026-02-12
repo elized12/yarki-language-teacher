@@ -5,11 +5,11 @@
 namespace dto
 {
 
-class Word
-{
+  class Word
+  {
   public:
     std::string content;
     std::string code;
-};
+  };
 
 } // namespace dto

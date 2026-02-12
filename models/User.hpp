@@ -8,13 +8,13 @@
 namespace models
 {
 
-class User
-{
+  class User
+  {
   public:
     models::id id;
     std::string hashedPassword;
     std::string email;
     std::string nickname;
-};
+  };
 
 } // namespace models

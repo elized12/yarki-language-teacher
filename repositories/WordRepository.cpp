@@ -140,7 +140,7 @@ WordRepository::getTranslates(models::id wordId, models::id userId)
             word.content = row["wordBContent"].as<std::string>();
             word.languageCode = models::LanguageCode::toString(
                 static_cast<models::LanguageCode::Code>(
-                    std::stoi(row["wordALanguageId"].as<std::string>())));
+                    std::stoi(row["wordBLanguageId"].as<std::string>())));
 
             word.id = row["wordBId"].as<models::id>();
         }

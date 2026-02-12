@@ -6,12 +6,12 @@
 namespace dto
 {
 
-class TranslateCreation
-{
+  class TranslateCreation
+  {
   public:
     models::id userId;
     dto::Word word;
     dto::Word translate;
-};
+  };
 
 } // namespace dto

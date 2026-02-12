@@ -8,8 +8,8 @@
 namespace models
 {
 
-class LanguageCode
-{
+  class LanguageCode
+  {
   private:
     static const std::array<int, 2> _values;
     static const std::array<std::string, 2> _names;
@@ -17,14 +17,14 @@ class LanguageCode
   public:
     enum Code
     {
-        RU = 0,
-        EN = 1,
+      RU = 1,
+      EN = 2,
     };
 
   public:
     static bool isLangCodeExist(std::string code);
-    static std::string toString(const Code& code);
+    static std::string toString(const Code &code);
     static Code toCode(std::string code);
-};
+  };
 
 } // namespace models

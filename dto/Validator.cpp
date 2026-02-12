@@ -2,13 +2,13 @@
 
 using namespace dto;
 
-Validator& Validator::getInstance()
+Validator &Validator::getInstance()
 {
     static Validator _instance;
     return _instance;
 }
 
-std::vector<std::string> Validator::isValidEmail(const std::string& email) const
+std::vector<std::string> Validator::isValidEmail(const std::string &email) const
 {
     std::vector<std::string> errors;
 
@@ -27,7 +27,7 @@ std::vector<std::string> Validator::isValidEmail(const std::string& email) const
     return errors;
 }
 
-std::vector<std::string> Validator::isValidNickname(const std::string& nickname) const
+std::vector<std::string> Validator::isValidNickname(const std::string &nickname) const
 {
     std::vector<std::string> errors;
 
@@ -51,7 +51,7 @@ std::vector<std::string> Validator::isValidNickname(const std::string& nickname)
     return errors;
 }
 
-std::vector<std::string> Validator::isValidPassword(const std::string& password) const
+std::vector<std::string> Validator::isValidPassword(const std::string &password) const
 {
     std::vector<std::string> errors;
 

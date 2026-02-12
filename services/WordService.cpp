@@ -8,7 +8,7 @@ WordService::WordService(repositories::WordRepository wordRepository)
 }
 
 drogon::Task<std::vector<models::Word>>
-WordService::get(models::id userId, const std::string& code, ssize_t limit, ssize_t offset)
+WordService::get(models::id userId, const std::string &code, ssize_t limit, ssize_t offset)
 {
     if (!models::LanguageCode::isLangCodeExist(code))
     {
@@ -16,11 +16,10 @@ WordService::get(models::id userId, const std::string& code, ssize_t limit, ssiz
     }
 
     co_return co_await this->_wordRepository.getByUser(
-            userId, models::LanguageCode::toCode(code), limit, offset
-    );
+        userId, models::LanguageCode::toCode(code), limit, offset);
 }
 
-drogon::Task<ssize_t> WordService::getCountWord(models::id userId, const std::string& code)
+drogon::Task<ssize_t> WordService::getCountWord(models::id userId, const std::string &code)
 {
     if (!models::LanguageCode::isLangCodeExist(code))
     {
@@ -28,6 +27,5 @@ drogon::Task<ssize_t> WordService::getCountWord(models::id userId, const std::st
     }
 
     co_return co_await this->_wordRepository.getCountWord(
-            userId, models::LanguageCode::toCode(code)
-    );
+        userId, models::LanguageCode::toCode(code));
 }

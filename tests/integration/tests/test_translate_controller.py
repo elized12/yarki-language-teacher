@@ -273,7 +273,7 @@ def test_remove_translate_notExistTranslate():
     clean_language_table()
 
 
-@pytest.mark.endpoint("/")
+@pytest.mark.endpoint("/translate/{1}")
 def test_get_translates():
     access_token = get_access_token()
     create_language_table()
@@ -331,7 +331,7 @@ def test_get_translates():
     clean_language_table()
 
 
-@pytest.mark.endpoint("/")
+@pytest.mark.endpoint("/translate/{1}")
 def test_get_translates_notExistWord():
     access_token = get_access_token()
     create_language_table()
