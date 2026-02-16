@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(webbis-language-teacher CXX)
+project(yarki-language-teacher CXX)
 
 include(CheckIncludeFileCXX)
 
