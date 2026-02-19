@@ -28,7 +28,7 @@ namespace services
 
   public:
     drogon::Task<models::id> registerUser(const dto::UserRegistration &userData);
-    drogon::Task<std::pair<std::string, std::string>> loginUser(const dto::UserLogin &credentials);
+    drogon::Task<std::tuple<std::string, std::string, models::User>> loginUser(const dto::UserLogin &credentials);
     bool isValidAccessToken(const std::string &accessToken);
     drogon::Task<bool> isValidRefreshToken(const std::string &refreshToken);
     drogon::Task<std::string> refresh(const std::string &refreshToken);

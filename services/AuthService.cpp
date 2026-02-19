@@ -46,7 +46,7 @@ drogon::Task<models::id> AuthService::registerUser(const dto::UserRegistration &
     co_return co_await this->_userRepository.create(newUser);
 }
 
-drogon::Task<std::pair<std::string, std::string>>
+drogon::Task<std::tuple<std::string, std::string, models::User>>
 AuthService::loginUser(const dto::UserLogin &credentials)
 {
     auto userOpt = co_await this->_userRepository.getByCredentials(
@@ -64,7 +64,12 @@ AuthService::loginUser(const dto::UserLogin &credentials)
     std::pair<std::string, std::string> tokens = co_await _jwtService.createJwtTokens(
         userData);
 
-    co_return tokens;
+    std::tuple<std::string, std::string, models::User> result;
+    std::get<0>(result) = tokens.first;
+    std::get<1>(result) = tokens.second;
+    std::get<2>(result) = *userOpt;
+
+    co_return result;
 }
 
 drogon::Task<std::string> AuthService::refresh(const std::string &refreshToken)

@@ -92,14 +92,21 @@ drogon::Task<HttpResponsePtr> AuthController::signIn(HttpRequestPtr request)
 
     try
     {
-        std::pair<std::string, std::string> tokens =
+        std::tuple<std::string, std::string, models::User> data =
             co_await this->_authService.loginUser(userLogin);
 
         Json::Value responseBody;
         responseBody["status"] = true;
         responseBody["message"] = "Успешно";
-        responseBody["access_token"] = tokens.first;
-        responseBody["refresh_token"] = tokens.second;
+        responseBody["access_token"] = std::get<0>(data);
+        responseBody["refresh_token"] = std::get<1>(data);
+
+        Json::Value user(Json::objectValue);
+        user["id"] = std::to_string(std::get<2>(data).id);
+        user["email"] = std::get<2>(data).email;
+        user["nickname"] = std::get<2>(data).nickname;
+
+        responseBody["user"] = user;
 
         drogon::HttpResponsePtr response = drogon::HttpResponse::newHttpJsonResponse(responseBody);
         response->setStatusCode(drogon::HttpStatusCode::k200OK);

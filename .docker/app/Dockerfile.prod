@@ -12,9 +12,9 @@ RUN apt-get update && \
     libboost-dev
 
 RUN mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
-RUN mv /app/build/webbis-language-teacher /app/webbis-language-teacher
+RUN mv /app/build/yarki-language-teacher /app/yarki-language-teacher
 
 EXPOSE 8000
 
-CMD [ "/app/webbis-language-teacher"]
+CMD [ "/app/yarki-language-teacher"]
 

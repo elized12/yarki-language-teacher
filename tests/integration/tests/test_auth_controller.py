@@ -194,6 +194,9 @@ def test_login_user():
 
     assert len(response.json()["access_token"]) != 0
     assert len(response.json()["refresh_token"]) != 0
+    assert response.json()["user"]["email"] == email
+    assert response.json()["user"]["nickname"] == nickname
+    assert len(response.json()["user"]["id"]) != 0
 
 
 @pytest.mark.endpoint("/sign-in")
