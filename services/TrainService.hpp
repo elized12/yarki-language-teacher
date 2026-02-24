@@ -25,9 +25,6 @@ namespace services
         services::WordCleaner _wordCleaner;
         repositories::TrainUserAnswerRepository _trainUserAnswerRepository;
 
-        const static int COUNT_LAST_CARD = 100;
-        const static int COUNT_TRANSLATE = 10000;
-
     public:
         TrainService(
             repositories::TrainSessionRepository trainSessionRepository,
