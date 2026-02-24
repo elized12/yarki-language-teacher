@@ -17,19 +17,19 @@ drogon::Task<models::id> AuthService::registerUser(const dto::UserRegistration &
     errors = this->_validator.isValidEmail(userData.email);
     if (!errors.empty())
     {
-        throw ValidationException(std::string("Email поле ошибка: " + errors[0]));
+        throw ValidationException(errors[0]);
     }
 
     errors = this->_validator.isValidNickname(userData.nickname);
     if (!errors.empty())
     {
-        throw ValidationException(std::string("Nickname поле ошибка: " + errors[0]));
+        throw ValidationException(errors[0]);
     }
 
     errors = this->_validator.isValidPassword(userData.password);
     if (!errors.empty())
     {
-        throw ValidationException(std::string("Password поле ошибка: " + errors[0]));
+        throw ValidationException(errors[0]);
     }
 
     auto existingUser = co_await this->_userRepository.getByEmail(userData.email);

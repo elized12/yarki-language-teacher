@@ -1,5 +1,8 @@
 #pragma once
 
+#include <unicode/regex.h>
+#include <unicode/unistr.h>
+
 #include <regex>
 #include <string>
 #include <vector>
