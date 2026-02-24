@@ -185,6 +185,7 @@ drogon::Task<std::vector<models::Word>> WordRepository::getByUser(
         co_return {};
     }
 
+    std::unordered_set<models::id> wordIds;
     std::vector<models::Word> words;
     for (const auto &row : result)
     {
@@ -203,7 +204,11 @@ drogon::Task<std::vector<models::Word>> WordRepository::getByUser(
                     row["wordALanguageId"].as<models::id>()));
             word.id = row["wordAId"].as<models::id>();
 
-            words.push_back(std::move(word));
+            if (wordIds.find(word.id) == wordIds.end())
+            {
+                wordIds.insert(word.id);
+                words.push_back(std::move(word));
+            }
         }
         else
         {
@@ -215,7 +220,11 @@ drogon::Task<std::vector<models::Word>> WordRepository::getByUser(
 
             word.id = row["wordBId"].as<models::id>();
 
-            words.push_back(std::move(word));
+            if (wordIds.find(word.id) == wordIds.end())
+            {
+                wordIds.insert(word.id);
+                words.push_back(std::move(word));
+            }
         }
     }
 
@@ -227,13 +236,13 @@ WordRepository::getCountWord(models::id userId, const models::LanguageCode::Code
 {
     drogon::orm::Result result = co_await this->_db->execSqlCoro(
         R"(
-            select count(distinct case when (wa.language_id = 1) then wa.id when(wb.language_id = 1) then wb.id end) as count from "translation" t
+            select count(distinct case when (wa.language_id = $1) then wa.id when(wb.language_id = $1) then wb.id end) as count from "translation" t
                 inner join word wa on t.word_a_id = wa.id
                 inner join word wb on t.word_b_id = wb.id 
-                where (wa.language_id = 1 or wb.language_id = 1) and user_id = 1
+                where (wa.language_id = $1 or wb.language_id = $1) and user_id = $2
         )",
         static_cast<int>(code),
-        userId);
+        static_cast<int>(userId));
 
     if (result.empty())
     {

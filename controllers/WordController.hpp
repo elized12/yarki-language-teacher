@@ -25,6 +25,12 @@ public:
       "/words/{1:userId}/{2:languageCode}?offset={3:offset}&limit={4:limit}",
       HttpMethod::Get,
       "AuthFilter");
+
+  ADD_METHOD_TO(
+      WordController::getCount,
+      "/words/{1:userId}/{2:languageCode}/count",
+      HttpMethod::Get,
+      "AuthFilter");
   METHOD_LIST_END
 
 public:

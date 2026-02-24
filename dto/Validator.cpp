@@ -18,12 +18,6 @@ std::vector<std::string> Validator::isValidEmail(const std::string &email) const
         return errors;
     }
 
-    static const std::regex pattern(R"(^[\w\.-]+@[\w\.-]+\.\w+$)");
-    if (!std::regex_match(email, pattern))
-    {
-        errors.push_back("Email должен быть в формате example@domain.com");
-    }
-
     return errors;
 }
 
@@ -76,12 +70,6 @@ std::vector<std::string> Validator::isValidPassword(const std::string &password)
     if (!std::regex_search(password, upper))
     {
         errors.push_back("Пароль должен содержать хотя бы одну заглавную букву");
-    }
-
-    static const std::regex special(R"([\W_])");
-    if (!std::regex_search(password, special))
-    {
-        errors.push_back("Пароль должен содержать хотя бы один специальный символ");
     }
 
     return errors;

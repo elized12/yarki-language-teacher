@@ -13,29 +13,66 @@ int main(int argc, char *argv[])
     }
 
     drogon::app().loadConfigFile(pathConfigJson);
-    drogon::app().registerPostHandlingAdvice(
-        [](const drogon::HttpRequestPtr &request, const drogon::HttpResponsePtr &response)
-        {
-            response->addHeader("Access-Control-Allow-Origin", "*");
-            response->addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            response->addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        });
 
-    drogon::app().registerPreRoutingAdvice([](const drogon::HttpRequestPtr &request,
-                                              drogon::FilterCallback &&stop,
-                                              drogon::FilterChainCallback &&pass)
-                                           {
-        if (request->method() != drogon::HttpMethod::Options)
+    drogon::app().registerSyncAdvice([](const drogon::HttpRequestPtr &request)
+                                         -> drogon::HttpResponsePtr
+                                     {
+        if (request->method() == drogon::HttpMethod::Options)
         {
-            pass();
-            return;
+            auto response = drogon::HttpResponse::newHttpResponse();
+
+            const auto &origin = request->getHeader("Origin");
+            if (!origin.empty())
+            {
+                response->addHeader("Access-Control-Allow-Origin", origin);
+            }
+
+            const auto &requestMethod =
+                request->getHeader("Access-Control-Request-Method");
+            if (!requestMethod.empty())
+            {
+                response->addHeader("Access-Control-Allow-Methods", requestMethod);
+            }
+
+            response->addHeader("Access-Control-Allow-Credentials", "true");
+
+            const auto &requestHeaders =
+                request->getHeader("Access-Control-Request-Headers");
+            if (!requestHeaders.empty())
+            {
+                response->addHeader("Access-Control-Allow-Headers", requestHeaders);
+            }
+
+            return std::move(response);
         }
+        return {}; });
 
-        auto response = drogon::HttpResponse::newHttpResponse();
-        response->addHeader("Access-Control-Allow-Origin", "*");
-        response->addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        response->addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        stop(response); });
+    drogon::app().registerPostHandlingAdvice(
+        [](const drogon::HttpRequestPtr &request,
+           const drogon::HttpResponsePtr &response) -> void
+        {
+            const auto &origin = request->getHeader("Origin");
+            if (!origin.empty())
+            {
+                response->addHeader("Access-Control-Allow-Origin", origin);
+            }
+
+            const auto &requestMethod =
+                request->getHeader("Access-Control-Request-Method");
+            if (!requestMethod.empty())
+            {
+                response->addHeader("Access-Control-Allow-Methods", requestMethod);
+            }
+
+            response->addHeader("Access-Control-Allow-Credentials", "true");
+
+            const auto &requestHeaders =
+                request->getHeader("Access-Control-Request-Headers");
+            if (!requestHeaders.empty())
+            {
+                response->addHeader("Access-Control-Allow-Headers", requestHeaders);
+            }
+        });
 
     drogon::app().run();
 

@@ -92,7 +92,7 @@ WordController::getCount(HttpRequestPtr request, models::id userId, std::string 
     {
         Json::Value answerBody;
         answerBody["status"] = false;
-        answerBody["message"] = "ошибка сервера";
+        answerBody["message"] = std::string("ошибка сервера: ") + ex.what();
 
         drogon::HttpResponsePtr response = drogon::HttpResponse::newHttpJsonResponse(answerBody);
         response->setStatusCode(drogon::HttpStatusCode::k500InternalServerError);
