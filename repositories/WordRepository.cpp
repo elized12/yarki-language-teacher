@@ -251,3 +251,57 @@ WordRepository::getCountWord(models::id userId, const models::LanguageCode::Code
 
     co_return result[0]["count"].as<ssize_t>();
 }
+
+drogon::Task<std::vector<models::Word>> WordRepository::getNextWordCandidates(
+    const models::TrainSession &session,
+    const models::LanguageCode::Code &language)
+{
+    drogon::orm::Result result = co_await this->_db->execSqlCoro(
+        R"(
+            with user_words as (
+            select distinct w.id from word w
+            inner join "translation" t on (t.word_a_id = w.id or t.word_b_id = w.id)
+            where t.user_id = $1 and w.language_id = $2
+        ),
+        count_words as (
+            select w.id, count(tc.id) from word w
+            left join train_card tc on (
+                w.id = tc.source_word_id and tc.train_session_id = $3
+            )
+            where w.id in (select id from user_words)
+            group by w.id
+        ),
+        word_candidates as (
+            select cw.id from count_words cw where cw.count = (select min(cw2.count) from count_words cw2)
+        )
+        select 
+            w.id as id,
+            w.content as content,
+            w.language_id as language_id,
+            w.created_at as created_at 
+        from word w 
+        where w.id in (select id from word_candidates);
+    )",
+        static_cast<int>(session.userId),
+        static_cast<int>(language),
+        session.id);
+
+    if (result.empty())
+    {
+        co_return {};
+    }
+
+    std::vector<models::Word> wordCandidates;
+
+    for (const auto &row : result)
+    {
+        models::Word word;
+        word.id = row["id"].as<models::id>();
+        word.languageCode = models::LanguageCode::toString(static_cast<models::LanguageCode::Code>(row["language_id"].as<int>()));
+        word.content = row["content"].as<std::string>();
+
+        wordCandidates.push_back(std::move(word));
+    }
+
+    co_return wordCandidates;
+}

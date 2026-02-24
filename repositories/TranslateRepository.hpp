@@ -36,6 +36,17 @@ namespace repositories
         const models::LanguageCode::Code &targetLanguage,
         const std::vector<models::id> &ignoredIds,
         ssize_t limit);
+
+    drogon::Task<bool> isTranslateExist(
+        models::id firstWordId,
+        std::string secondContentWord,
+        const models::LanguageCode::Code &firstWordCode,
+        models::id userId);
+
+    drogon::Task<ssize_t> getCount(
+        const models::LanguageCode::Code &sourceLanguage,
+        const models::LanguageCode::Code &targetLanguage,
+        models::id userId);
   };
 
 } // namespace repositories

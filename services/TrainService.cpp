@@ -10,13 +10,11 @@ TrainService::TrainService(
     repositories::TrainCardRepository trainCardRepository,
     repositories::WordRepository wordRepository,
     repositories::TranslateRepository translateRepository,
-    repositories::TrainUserAnswerRepository trainUserAnswerRepository,
-    services::WordCleaner wordCleaner)
+    repositories::TrainUserAnswerRepository trainUserAnswerRepository)
     : _trainSessionRepository(std::move(trainSessionRepository)),
       _trainCardRepository(std::move(trainCardRepository)),
       _wordRepository(std::move(wordRepository)),
       _translateRepository(std::move(translateRepository)),
-      _wordCleaner(std::move(wordCleaner)),
       _trainUserAnswerRepository(std::move(trainUserAnswerRepository))
 {
 }
@@ -81,75 +79,8 @@ drogon::Task<models::TrainCard> TrainService::getTask(models::id userId, const s
         co_return currentCard.value();
     }
 
-    int lastPositionCard = 0;
-
-    const models::LanguageCode::Code &sourceLanguage = session->settings.sourceLanguage;
-    const models::LanguageCode::Code &targetLanguage = session->settings.targetLanguage;
-
-    std::vector<models::TrainCard> lastCards = co_await this->_trainCardRepository.getLastCards(session->id, TrainService::COUNT_LAST_CARD);
-
-    std::vector<models::id> lastWordIds;
-    for (const models::TrainCard &card : lastCards)
-    {
-        lastWordIds.push_back(card.targetWordId);
-        lastPositionCard = card.position;
-    }
-
-    std::vector<models::Translate> translates = co_await this->_translateRepository.getTranslates(
-        userId,
-        sourceLanguage,
-        targetLanguage,
-        lastWordIds,
-        TrainService::COUNT_TRANSLATE);
-
-    if (translates.empty())
-    {
-        throw NotExistException("no translates for session");
-    }
-
-    std::random_device randomDevice;
-    std::mt19937 gen(randomDevice());
-    std::uniform_int_distribution<> distrib(0, static_cast<int>(translates.size() - 1));
-
-    int randomIndex = distrib(gen);
-
-    const models::Translate &selectedTranslate = translates[randomIndex];
-
-    auto wordAOpt = co_await this->_wordRepository.get(selectedTranslate.firstWordId);
-    auto wordBOpt = co_await this->_wordRepository.get(selectedTranslate.secondWordId);
-
-    if (!wordAOpt.has_value() || !wordBOpt.has_value())
-    {
-        throw NotExistException("words for translate not found");
-    }
-
-    models::Word wordA = wordAOpt.value();
-    models::Word wordB = wordBOpt.value();
-
-    models::Word sourceWord = wordA;
-    models::Word targetWord = wordB;
-    if (models::LanguageCode::toCode(wordA.languageCode) != sourceLanguage)
-    {
-        sourceWord = wordB;
-        targetWord = wordA;
-    }
-
-    models::TrainCard card;
-    card.createdAt = std::chrono::system_clock::now();
-    card.position = lastPositionCard + 1;
-    card.targetWordId = targetWord.id;
-    card.trainCardModeId = 1;
-    card.trainSessionId = session->id;
-
-    nlohmann::json cardParams;
-    cardParams["source_word_content"] = sourceWord.content;
-    cardParams["source_word_id"] = sourceWord.id;
-    cardParams["source_word_language_code"] = sourceWord.languageCode;
-
-    card.params = cardParams.dump();
-
-    models::id createdId = co_await this->_trainCardRepository.create(card);
-    card.id = createdId;
+    static services::train::CardGeneratorFactory cardGeneratorFactory;
+    models::TrainCard card = co_await cardGeneratorFactory.generate(session.value(), services::train::CardMode::SOURCE_TO_TARGET_INPUT);
 
     co_return card;
 }
@@ -163,19 +94,10 @@ drogon::Task<bool> TrainService::answerTask(const std::string &answer, models::i
     }
 
     models::TrainCard card = cardOpt.value();
+    services::train::CardMode cardMode = static_cast<services::train::CardMode>(card.trainCardModeId);
 
-    auto targetWordOpt = co_await this->_wordRepository.get(card.targetWordId);
-    if (!targetWordOpt.has_value())
-    {
-        throw NotExistException("target word not found");
-    }
-
-    std::string expected = targetWordOpt->content;
-
-    std::string answerClean = this->_wordCleaner.clean(answer);
-    std::string expectedClean = this->_wordCleaner.clean(expected);
-
-    bool isCorrect = answerClean == expectedClean;
+    static services::train::CardCheckerFactory cardCheckerFactory;
+    bool isCorrect = co_await cardCheckerFactory.check(card, answer, cardMode);
 
     models::UserAnswer ua;
     ua.trainCardId = card.id;

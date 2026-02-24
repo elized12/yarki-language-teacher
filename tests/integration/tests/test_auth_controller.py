@@ -92,7 +92,7 @@ def test_register_user_notValidateNickname():
 def test_register_user_notValidatePassword():
     email = "test@mail.ru"
     nickname = "test"
-    password = "Kirill200415"
+    password = "kirill200415"
 
     request_data = json.dumps(
         {"email": email, "nickname": nickname, "password": password}

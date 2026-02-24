@@ -9,6 +9,7 @@
 #include "models/LanguageCode.hpp"
 #include "models/Word.hpp"
 #include "repositories/ResultEmptyException.hpp"
+#include "models/TrainSession.hpp"
 
 namespace repositories
 {
@@ -24,16 +25,19 @@ namespace repositories
   public:
     drogon::Task<std::optional<models::Word>> get(models::id id);
     drogon::Task<std::optional<models::Word>> getByContent(const std::string &content);
-    drogon::Task<std::vector<models::Word>> getByUser(
-        models::id userId, const models::LanguageCode::Code &code, ssize_t limit, ssize_t offset);
-
     drogon::Task<ssize_t> getCountWord(models::id userId, const models::LanguageCode::Code &code);
-
     drogon::Task<models::id> create(const models::Word &word);
     drogon::Task<bool> remove(models::id id);
     drogon::Task<bool> update(const models::Word &user);
-
     drogon::Task<std::vector<models::Word>> getTranslates(models::id wordId, models::id userId);
+    drogon::Task<std::vector<models::Word>> getNextWordCandidates(
+        const models::TrainSession &session,
+        const models::LanguageCode::Code &language);
+    drogon::Task<std::vector<models::Word>> getByUser(
+        models::id userId,
+        const models::LanguageCode::Code &code,
+        ssize_t limit,
+        ssize_t offset);
   };
 
 } // namespace repositories

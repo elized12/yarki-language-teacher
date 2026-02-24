@@ -10,14 +10,14 @@ drogon::Task<models::id> TrainCardRepository::create(const models::TrainCard &ca
 {
     drogon::orm::Result result = co_await this->_db->execSqlCoro(
         R"(
-            INSERT INTO train_card (train_session_id, train_card_mode_id, position, other_params, target_word_id)
+            INSERT INTO train_card (train_session_id, train_card_mode_id, position, other_params, source_word_id)
             VALUES ($1, $2, $3, $4::jsonb, $5) RETURNING id;
         )",
         card.trainSessionId,
         static_cast<int>(card.trainCardModeId),
         static_cast<int>(card.position),
         card.params,
-        static_cast<int>(card.targetWordId));
+        static_cast<int>(card.sourceWordId));
 
     if (result.empty())
     {
@@ -46,14 +46,14 @@ drogon::Task<bool> TrainCardRepository::update(const models::TrainCard &card)
                 position = $2,
                 other_params = $3::jsonb,
                 train_card_mode_id = $4,
-                target_word_id = $5
+                source_word_id = $5
             WHERE id = $6
         )",
         card.trainSessionId,
         card.position,
         card.params,
         card.trainCardModeId,
-        static_cast<int>(card.targetWordId),
+        static_cast<int>(card.sourceWordId),
         static_cast<int>(card.id));
     co_return result.affectedRows() != 0;
 }
@@ -69,7 +69,7 @@ drogon::Task<std::optional<models::TrainCard>> TrainCardRepository::get(models::
                 created_at,
                 position,
                 other_params,
-                target_word_id
+                source_word_id
             FROM train_card 
                 WHERE id = $1)",
         static_cast<int>(id));
@@ -85,7 +85,7 @@ drogon::Task<std::optional<models::TrainCard>> TrainCardRepository::get(models::
     card.trainCardModeId = result[0]["train_card_mode_id"].as<models::id>();
     card.trainSessionId = result[0]["train_session_id"].as<std::string>();
     card.params = result[0]["other_params"].as<std::string>();
-    card.targetWordId = result[0]["target_word_id"].as<models::id>();
+    card.sourceWordId = result[0]["source_word_id"].as<models::id>();
 
     co_return card;
 }
@@ -101,7 +101,7 @@ drogon::Task<std::optional<models::TrainCard>> TrainCardRepository::getCurrentCa
                 train_card.created_at as trainCardCreatedAt,
                 train_card.position as trainCardPosition,
                 train_card.other_params as trainCardParams,
-                train_card.target_word_id as trainCardTargetWordId
+                train_card.source_word_id as trainCardSourceWordId
             FROM train_card
             LEFT JOIN train_user_answer ON train_user_answer.train_card_id=train_card.id
             WHERE (train_card.train_session_id = $1) AND (train_user_answer.id IS NULL)
@@ -122,7 +122,7 @@ drogon::Task<std::optional<models::TrainCard>> TrainCardRepository::getCurrentCa
     card.trainCardModeId = result[0]["trainCardModeId"].as<int>();
     card.params = result[0]["trainCardParams"].as<std::string>();
     card.createdAt = models::stringToTimePoint(result[0]["trainCardCreatedAt"].as<std::string>());
-    card.targetWordId = result[0]["trainCardTargetWordId"].as<models::id>();
+    card.sourceWordId = result[0]["trainCardSourceWordId"].as<models::id>();
 
     co_return card;
 }
@@ -132,11 +132,9 @@ drogon::Task<std::optional<int>> TrainCardRepository::getLastPosition(const std:
     drogon::orm::Result result = co_await this->_db->execSqlCoro(
         R"(
             SELECT 
-                train_card.position as trainCardPosition
+                MAX(COALESCE(train_card.position, 0)) as trainCardPosition
             FROM train_card
-            LEFT JOIN train_user_answer ON train_user_answer.train_card_id=train_card.id
-            WHERE (train_session.id = $1) AND (train_user_answer.id IS NULL)
-            ORDER BY train_card.position ASC
+                WHERE (train_card.train_session_id = $1)
             LIMIT 1
         )",
         sessionId);
@@ -160,7 +158,7 @@ drogon::Task<std::vector<models::TrainCard>> TrainCardRepository::getLastCards(c
                 created_at,
                 position,
                 other_params,
-                target_word_id
+                source_word_id
             FROM train_card 
             WHERE train_session_id = $1
             ORDER BY position DESC
@@ -180,7 +178,7 @@ drogon::Task<std::vector<models::TrainCard>> TrainCardRepository::getLastCards(c
         card.createdAt = models::stringToTimePoint(row["created_at"].as<std::string>());
         card.position = row["position"].as<int>();
         card.params = row["other_params"].as<std::string>();
-        card.targetWordId = row["target_word_id"].as<models::id>();
+        card.sourceWordId = row["source_word_id"].as<models::id>();
 
         cards.push_back(card);
     }

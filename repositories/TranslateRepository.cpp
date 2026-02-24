@@ -134,7 +134,7 @@ drogon::Task<std::vector<models::Translate>> TranslateRepository::getTranslates(
     models::id userId,
     const models::LanguageCode::Code &sourceLanguage,
     const models::LanguageCode::Code &targetLanguage,
-    const std::vector<models::id> &ignoredIds,
+    const std::vector<models::id> &ignoredWordIds,
     ssize_t limit)
 {
     std::string sql = R"(
@@ -153,16 +153,17 @@ drogon::Task<std::vector<models::Translate>> TranslateRepository::getTranslates(
                 (translation.user_id = $3)
     )";
 
-    if (!ignoredIds.empty())
+    if (!ignoredWordIds.empty())
     {
         std::string ids;
-        for (size_t i = 0; i < ignoredIds.size(); ++i)
+        for (size_t i = 0; i < ignoredWordIds.size(); ++i)
         {
             if (i)
                 ids += ",";
-            ids += std::to_string(ignoredIds[i]);
+            ids += std::to_string(ignoredWordIds[i]);
         }
-        sql += " AND translation.id NOT IN (" + ids + ")";
+
+        sql += " AND translation.word_b_id NOT IN (" + ids + ") AND translation.word_a_id NOT IN (" + ids + ")";
     }
 
     sql += " ORDER BY translation.created_at DESC LIMIT $4";
@@ -194,4 +195,65 @@ drogon::Task<std::vector<models::Translate>> TranslateRepository::getTranslates(
     }
 
     co_return translates;
+}
+
+drogon::Task<bool> TranslateRepository::isTranslateExist(
+    models::id firstWordId,
+    std::string secondContentWord,
+    const models::LanguageCode::Code &firstWordCode,
+    models::id userId)
+{
+    drogon::orm::Result result = co_await this->_db->execSqlCoro(
+        R"(
+       SELECT EXISTS(
+        SELECT 1 FROM translation
+        INNER JOIN word wa ON wa.id = translation.word_a_id
+        INNER JOIN word wb ON wb.id = translation.word_b_id
+        WHERE 
+        (
+            (wa.id = $1 AND wa.language_id = $3 AND wb.content = $2)
+        OR
+            (wb.id = $1 AND wb.language_id = $3 AND wa.content = $2)
+        )
+        AND 
+            translation.user_id = $4
+       )
+    )",
+        static_cast<int>(firstWordId),
+        secondContentWord,
+        static_cast<int>(firstWordCode),
+        static_cast<int>(userId));
+
+    co_return result[0][0].as<bool>();
+}
+
+drogon::Task<ssize_t> TranslateRepository::getCount(
+    const models::LanguageCode::Code &sourceLanguage,
+    const models::LanguageCode::Code &targetLanguage,
+    models::id userId)
+{
+    drogon::orm::Result result = co_await this->_db->execSqlCoro(
+        R"(
+        SELECT COUNT(*) as count FROM translation 
+        INNER JOIN word wa ON wa.id = translation.word_a_id
+        INNER JOIN word wb ON wb.id = translation.word_b_id
+        WHERE 
+        (    
+            (wa.language_id = $1 AND wb.language_id = $2)
+        OR
+            (wb.language_id = $1 AND wa.language_id = $2)
+        )
+        AND
+            translation.user_id = $3
+    )",
+        static_cast<int>(sourceLanguage),
+        static_cast<int>(targetLanguage),
+        static_cast<int>(userId));
+
+    if (result.empty())
+    {
+        throw ResultEmptyException("not returned count");
+    }
+
+    co_return result[0]["count"].as<ssize_t>();
 }

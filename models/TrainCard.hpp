@@ -14,7 +14,7 @@ namespace models
         models::timePoint createdAt;
         int position;
         std::string params;
-        models::id targetWordId;
+        models::id sourceWordId;
     };
 
 }

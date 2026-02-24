@@ -9,8 +9,7 @@ TrainController::TrainController()
               repositories::TrainCardRepository(drogon::app().getDbClient()),
               repositories::WordRepository(drogon::app().getDbClient()),
               repositories::TranslateRepository(drogon::app().getDbClient()),
-              repositories::TrainUserAnswerRepository(drogon::app().getDbClient()),
-              services::WordCleaner())),
+              repositories::TrainUserAnswerRepository(drogon::app().getDbClient()))),
       _authService(services::AuthService(
           repositories::UserRepository(drogon::app().getDbClient()),
           services::JwtService(
@@ -174,7 +173,7 @@ drogon::Task<HttpResponsePtr> TrainController::getTask(HttpRequestPtr request, s
             {"position", card.position},
             {"params", nlohmann::json::parse(card.params)},
             {"trainCardModeId", std::to_string(card.trainCardModeId)},
-            {"targetWordId", std::to_string(card.targetWordId)},
+            {"sourceWordId", std::to_string(card.sourceWordId)},
             {"createdAt", models::timePointToString(card.createdAt)}};
 
         drogon::HttpResponsePtr response = drogon::HttpResponse::newHttpResponse(drogon::HttpStatusCode::k200OK, drogon::ContentType::CT_APPLICATION_JSON);

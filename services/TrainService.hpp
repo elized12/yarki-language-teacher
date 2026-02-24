@@ -1,7 +1,5 @@
 #pragma once
 
-#include <random>
-
 #include "repositories/TrainSessionRepository.hpp"
 #include "repositories/TrainCardRepository.hpp"
 #include "repositories/WordRepository.hpp"
@@ -10,7 +8,9 @@
 #include "services/ValidataionException.hpp"
 #include "services/AccessDeniedException.hpp"
 #include "repositories/TranslateRepository.hpp"
-#include "services/WordCleaner.hpp"
+#include "services/train/CardCheckerFactory.hpp"
+#include "services/train/CardGeneratorFactory.hpp"
+#include "services/train/CardMode.hpp"
 
 namespace services
 {
@@ -22,11 +22,7 @@ namespace services
         repositories::TrainCardRepository _trainCardRepository;
         repositories::WordRepository _wordRepository;
         repositories::TranslateRepository _translateRepository;
-        services::WordCleaner _wordCleaner;
         repositories::TrainUserAnswerRepository _trainUserAnswerRepository;
-
-        const static int COUNT_LAST_CARD = 100;
-        const static int COUNT_TRANSLATE = 10000;
 
     public:
         TrainService(
@@ -34,8 +30,7 @@ namespace services
             repositories::TrainCardRepository trainCardRepository,
             repositories::WordRepository wordRepository,
             repositories::TranslateRepository translateRepository,
-            repositories::TrainUserAnswerRepository trainUserAnswerRepository,
-            services::WordCleaner wordCleaner);
+            repositories::TrainUserAnswerRepository trainUserAnswerRepository);
 
     public:
         drogon::Task<std::string> startSession(models::id userId, const models::TrainSettings &settings);
