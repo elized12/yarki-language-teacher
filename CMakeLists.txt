@@ -67,6 +67,7 @@ aux_source_directory(plugins PLUGIN_SRC)
 aux_source_directory(models MODEL_SRC)
 aux_source_directory(repositories REPOSITORY_SRC)
 aux_source_directory(dto DTO_SRC)
+aux_source_directory(utils UTIL_SRC)
 file(GLOB_RECURSE SERVICE_SRC RELATIVE ${CMAKE_SOURCE_DIR} "services/*.cpp")
 
 drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/views
@@ -101,6 +102,7 @@ target_sources(${PROJECT_NAME}
                ${MODEL_SRC}
                ${REPOSITORY_SRC}
                ${DTO_SRC}
+               ${UTIL_SRC}
                ${SERVICE_SRC}
             )
 
