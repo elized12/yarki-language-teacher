@@ -230,17 +230,14 @@ def test_remove_translate():
     assert response.status_code == 201, f"{response.text}"
     assert response.json()["status"] == True
 
-    request_data = json.dumps(
-        {
-            "firstWordId": response.json()["firstWord"]["id"],
-            "secondWordId": response.json()["secondWord"]["id"],
-        }
-    )
+    data = {
+        "firstWordId": response.json()["firstWord"]["id"],
+        "secondWordId": response.json()["secondWord"]["id"],
+    }
 
     response = requests.delete(
-        f"http://{APP_HOST}:{APP_PORT}/translate",
-        headers={"Content-Type": "application/json", "Authorization": access_token},
-        data=request_data.encode("utf-8"),
+        f"http://{APP_HOST}:{APP_PORT}/translate/{data['firstWordId']}/{data['secondWordId']}",
+        headers={"Content-Type": "application/json", "Authorization": access_token}
     )
 
     assert response.status_code == 200, response.text
@@ -254,17 +251,10 @@ def test_remove_translate_notExistTranslate():
     access_token = get_access_token()
     create_language_table()
 
-    request_data = json.dumps(
-        {
-            "firstWordId": 1,
-            "secondWordId": 2,
-        }
-    )
 
     response = requests.delete(
-        f"http://{APP_HOST}:{APP_PORT}/translate",
-        headers={"Content-Type": "application/json", "Authorization": access_token},
-        data=request_data.encode("utf-8"),
+        f"http://{APP_HOST}:{APP_PORT}/translate/1/2",
+        headers={"Content-Type": "application/json", "Authorization": access_token}
     )
 
     assert response.status_code == 404, response.text

@@ -21,13 +21,13 @@ public:
   METHOD_LIST_BEGIN
   ADD_METHOD_TO(TranslateController::addTranslate, "/translate", HttpMethod::Post, "AuthFilter");
   ADD_METHOD_TO(
-      TranslateController::removeTranslate, "/translate", HttpMethod::Delete, "AuthFilter");
+      TranslateController::removeTranslate, "/translate/{1}/{2}", HttpMethod::Delete, "AuthFilter");
   ADD_METHOD_TO(
       TranslateController::getTranslates, "/translate/{1}", HttpMethod::Get, "AuthFilter");
   METHOD_LIST_END
 
 public:
   drogon::Task<HttpResponsePtr> addTranslate(HttpRequestPtr request);
-  drogon::Task<HttpResponsePtr> removeTranslate(HttpRequestPtr request);
+  drogon::Task<HttpResponsePtr> removeTranslate(HttpRequestPtr request, models::id firstWordId, models::id secondWordId);
   drogon::Task<HttpResponsePtr> getTranslates(HttpRequestPtr request, models::id wordId);
 };

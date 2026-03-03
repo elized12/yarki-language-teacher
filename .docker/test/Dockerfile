@@ -10,6 +10,6 @@ RUN pip install --no-cache-dir \
     requests \
     python-dotenv \
     psycopg2-binary \
-    pytest-html
+    pytest-html 
 
 CMD ["python", "-m", "pytest", "tests/integration/", "-v", "--html=test-reports/report.html", "--self-contained-html"]

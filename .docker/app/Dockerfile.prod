@@ -5,13 +5,32 @@ WORKDIR /app
 COPY . .
 
 RUN apt-get update && \
+    apt-get install -y software-properties-common wget gnupg && \
+    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1E9377A2BA9EF27F && \
+    add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
+    apt-get update
+
+RUN apt-get update && \
     apt-get install -y \
+    g++-13 \
+    gcc-13 \
     libicu-dev \
     libboost-locale-dev \
     libboost-system-dev \
     libboost-dev
 
-RUN mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 \
+    && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100 \
+    && update-alternatives --set gcc /usr/bin/gcc-13 \
+    && update-alternatives --set g++ /usr/bin/g++-13
+
+RUN mkdir build && cd build && \
+    cmake -DCMAKE_C_COMPILER=/usr/bin/gcc-13 \
+          -DCMAKE_CXX_COMPILER=/usr/bin/g++-13 \
+          -DCMAKE_BUILD_TYPE=Release .. && \
+    make
+    
 RUN mv /app/build/yarki-language-teacher /app/yarki-language-teacher
 
 EXPOSE 8000

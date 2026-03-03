@@ -84,27 +84,10 @@ drogon::Task<HttpResponsePtr> TranslateController::addTranslate(HttpRequestPtr r
     }
 }
 
-drogon::Task<HttpResponsePtr> TranslateController::removeTranslate(HttpRequestPtr request)
+drogon::Task<HttpResponsePtr> TranslateController::removeTranslate(HttpRequestPtr request, models::id firstWordId, models::id secondWordId)
 {
     const std::string accessToken = request->getHeader("Authorization");
     models::id userId = std::stoull(this->_authService.getPayload(accessToken)["userId"].get<std::string>());
-
-    std::shared_ptr<Json::Value> requestBody = request->getJsonObject();
-    if (!requestBody || !requestBody->isMember("firstWordId") ||
-        !requestBody->isMember("secondWordId"))
-    {
-        Json::Value answerBody;
-        answerBody["status"] = false;
-        answerBody["message"] = "Неверный формат запроса";
-
-        drogon::HttpResponsePtr response = drogon::HttpResponse::newHttpJsonResponse(answerBody);
-        response->setStatusCode(drogon::HttpStatusCode::k400BadRequest);
-
-        co_return response;
-    }
-
-    models::id firstWordId = std::stoull(requestBody->get("firstWordId", "").asString());
-    models::id secondWordId = std::stoull(requestBody->get("secondWordId", "").asString());
 
     try
     {
