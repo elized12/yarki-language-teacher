@@ -567,3 +567,5 @@ build/*
 __pycache__
 
 CMakePresets.json
+
+config.prod.json

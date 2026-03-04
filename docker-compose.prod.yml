@@ -1,0 +1,41 @@
+services:
+  prod-db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: "kirill200415!"
+      POSTGRES_USER: "elized"
+      POSTGRES_DB: "language-teacher"
+      DB_PORT: "5432"
+    ports:
+      - "5430:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "elized", "-d", "language-teacher" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    networks:
+      - prod_network
+
+  prod-app:
+    build:
+      dockerfile: .docker/app/Dockerfile.prod
+      context: .
+    environment:
+      CONFIG_JSON_PATH: "config.prod.json"
+    networks:
+      - prod_network
+    ports:
+      - "8000:8000"
+    depends_on:
+      prod-db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/metrics" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+
+networks:
+  prod_network:
+    driver: bridge
