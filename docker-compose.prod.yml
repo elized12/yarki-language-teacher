@@ -6,8 +6,10 @@ services:
       POSTGRES_USER: "elized"
       POSTGRES_DB: "language-teacher"
       DB_PORT: "5432"
-    ports:
-      - "5430:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "elized", "-d", "language-teacher" ]
       interval: 5s
@@ -25,12 +27,12 @@ services:
     networks:
       - prod_network
     ports:
-      - "8000:8000"
+      - "8005:8005"
     depends_on:
       prod-db:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/metrics" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8005/metrics" ]
       interval: 5s
       timeout: 10s
       retries: 5
@@ -39,3 +41,6 @@ services:
 networks:
   prod_network:
     driver: bridge
+
+volumes:
+  db_data:
